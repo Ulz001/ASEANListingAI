@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "routes": [
+    { "src": "/api/(.*)", "dest": "https://192.168.1.150:8000/api/$1" },
+    { "src": "/static/(.*)", "dest": "https://192.168.1.150:8000/static/$1" }
+  ]
+}

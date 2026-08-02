@@ -162,7 +162,7 @@ app.add_middleware(
 
 # 挂载静态文件（上传的图片等）
 app.mount("/static/uploads", StaticFiles(directory=str(IMAGES_DIR)), name="uploads")
-app.mount("/static/templates", StaticFiles(directory=str(DATA_DIR / "templates"), allow_symlink=True), name="templates")
+app.mount("/static/templates", StaticFiles(directory=str(DATA_DIR / "templates")), name="templates")
 
 # ============ 工具函数 ============
 def generate_id() -> str:

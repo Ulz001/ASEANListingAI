@@ -1,0 +1,24 @@
+{
+  "name": "aseanlistingai",
+  "version": "1.0.0",
+  "description": "AI 驱动的东南亚跨境电商详情页生成工具",
+  "main": "pm2.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ulz001/ASEANListingAI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Ulz001/ASEANListingAI/issues"
+  },
+  "homepage": "https://github.com/Ulz001/ASEANListingAI#readme",
+  "devDependencies": {
+    "vercel": "^58.4.4"
+  }
+}
