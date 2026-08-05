@@ -48,7 +48,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { showToast } from '@/api.js'
+import { apiClient, showToast } from '@/api.js'
 
 const router = useRouter()
 const projects = ref([])
@@ -76,18 +76,23 @@ const openProject = (proj) => {
   router.push({ path: '/', query: { project: proj.id } })
 }
 
-const confirmDelete = (id) => {
+const confirmDelete = async (id) => {
   if (!confirm('确定要删除此项目吗？删除后无法恢复。')) return
-  projects.value = projects.value.filter(p => p.id !== id)
-  localStorage.setItem('asean_projects', JSON.stringify(projects.value))
-  showToast('项目已删除', 'success')
+  try {
+    await apiClient.deleteProject(id)
+    projects.value = projects.value.filter(p => p.id !== id)
+    showToast('项目已删除', 'success')
+  } catch (e) {
+    showToast('删除失败，请重试', 'error')
+  }
 }
 
-onMounted(() => {
+onMounted(async () => {
   try {
-    const stored = localStorage.getItem('asean_projects')
-    projects.value = stored ? JSON.parse(stored) : []
+    const res = await apiClient.listProjects()
+    projects.value = res.data || []
   } catch (e) {
+    console.error('加载项目失败', e)
     projects.value = []
   }
 })

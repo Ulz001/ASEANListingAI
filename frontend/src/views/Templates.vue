@@ -43,7 +43,7 @@
                 <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
                 <polyline points="17 6 23 6 23 12"/>
               </svg>
-              {{ tpl.usageCount.toLocaleString() }} 次使用
+              {{ (tpl.usage_count || tpl.usageCount || 0).toLocaleString() }} 次使用
             </span>
             <button class="btn btn-primary btn-sm" @click="useTemplate(tpl)">使用此模板 →</button>
           </div>
@@ -101,9 +101,9 @@ onMounted(async () => {
   } catch (e) {
     // 使用默认数据
     templates.value = [
-      { id: '1', name: '无线耳机爆款', category: '3c', platforms: ['shopee','lazada','tiktokshop'], usageCount: 2840 },
-      { id: '2', name: '精华液护肤套装', category: 'beauty', platforms: ['shopee','tiktokshop'], usageCount: 1650 },
-      { id: '3', name: '运动鞋潮流款', category: 'fashion', platforms: ['lazada','shopify'], usageCount: 920 },
+      { id: '1', name: '无线耳机爆款', category: '3c', platforms: ['shopee','lazada','tiktokshop'], usage_count: 2840, usageCount: 2840 },
+      { id: '2', name: '精华液护肤套装', category: 'beauty', platforms: ['shopee','tiktokshop'], usage_count: 1650, usageCount: 1650 },
+      { id: '3', name: '运动鞋潮流款', category: 'fashion', platforms: ['lazada','shopify'], usage_count: 920, usageCount: 920 },
     ]
   }
 })

@@ -6,7 +6,7 @@ AI 驱动的东南亚跨境电商详情页生成工具
 
 - **后端：** Python 3.11+ / FastAPI / Uvicorn
 - **前端：** Vue 3 / Vite / Axios
-- **AI：** Agnes AI (agnes/2.0-flash)
+- **AI：** SiliconFlow API (deepseek-ai/DeepSeek-V3 / Qwen2.5-72B-Instruct / GLM-4)
 - **部署：** Docker 支持
 
 ## 📁 功能模块
@@ -27,7 +27,15 @@ AI 驱动的东南亚跨境电商详情页生成工具
 
 编辑 `backend/.env`：
 ```bash
-AGNES_API_KEY=your_agnes_api_key_here
+# SiliconFlow API（必需）
+SILICONFLOW_API_KEY=sk-your-siliconflow-api-key-here
+# 可选：选择模型
+# SILICONFLOW_MODEL=deepseek-ai/DeepSeek-V3
+# SILICONFLOW_MODEL=Qwen/Qwen2.5-72B-Instruct
+# SILICONFLOW_MODEL=THUDM/glm-4-9b-chat
+
+# Agnes AI（可选，用于图片生成）
+AGNES_API_KEY=
 ```
 
 ### 2. 安装依赖
@@ -174,6 +182,17 @@ docker run -d -p 8000:8000 \
 | 买家好评 | 用户评价和晒图展示 |
 | 物流支付 | 本地物流和支付方式说明 |
 | 促销信息 | 折扣、满减、赠品等促销模块 |
+
+## 🔑 SiliconFlow 模型推荐
+
+| 模型 | 特点 | 推荐场景 |
+|------|------|----------|
+| `deepseek-ai/DeepSeek-V3` | 深度思考，推理能力强 | 文案生成、翻译 |
+| `Qwen/Qwen2.5-72B-Instruct` | 通义千问，通用能力强 | 多语言任务 |
+| `THUDM/glm-4-9b-chat` | 智谱 GLM，中文优秀 | 中文文案优化 |
+| `mistralai/Mistral-7B-Instruct` | Mistral，多语言能力 | 东南亚语言翻译 |
+
+获取 API Key：https://cloud.siliconflow.cn/
 
 ## 🤝 贡献
 

@@ -4,8 +4,8 @@
     <div v-if="isGenerating" class="generating-overlay">
       <div class="generating-box">
         <div class="spinner"></div>
-        <h3>AI 正在生成详情页</h3>
-        <p>{{ generatingStep }}</p>
+        <h3>{{ generatingStep }}</h3>
+        <p>{{ generatingStepDetail }}</p>
         <div class="progress-bar">
           <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
         </div>
@@ -101,7 +101,7 @@
               rows="5"
             ></textarea>
             <div class="copy-actions">
-              <button class="btn btn-gradient btn-sm" @click="generateCopywriting" :disabled="!copywriting.trim() || isGenerating">
+              <button class="btn btn-gradient btn-sm" @click="analyzeAndGenerate" :disabled="isGenerating">
                 ✨ AI 智能撰写
               </button>
               <button v-if="showTranslate" class="btn btn-sm" @click="translateCopy" :disabled="!copywriting.trim() || isGenerating">
@@ -117,8 +117,13 @@
           <!-- 模块选择 -->
           <section class="panel-section">
             <div class="section-header">
-              <h3 class="section-title" style="margin:0">详情页模块选择</h3>
-              <span class="module-count">已选 {{ selectedModulesCount }}/{{ modules.length }}</span>
+              <div class="section-header-left">
+                <h3 class="section-title" style="margin:0">详情页模块选择</h3>
+                <span class="module-count">已选 {{ selectedModulesCount }}/{{ modules.length }}</span>
+              </div>
+              <button class="btn btn-sm btn-outline" @click="$router.push('/templates')">
+                ➕ 更多模板
+              </button>
             </div>
             <div class="module-list">
               <div
@@ -128,9 +133,12 @@
                 :class="{ selected: mod.selected }"
                 @click="toggleModule(mod.id)"
               >
-                <input type="checkbox" :checked="mod.selected" @click.stop>
-                <span class="module-name">{{ mod.name }}</span>
-                <span v-if="mod.selected" class="module-order">{{ mod.order + 1 }}</span>
+                <div class="module-item-header">
+                  <input type="checkbox" :checked="mod.selected" @click.stop>
+                  <span class="module-name">{{ mod.name }}</span>
+                  <span v-if="mod.selected" class="module-order">{{ mod.order + 1 }}</span>
+                </div>
+                <p v-if="mod.selected" class="module-desc">{{ mod.description }}</p>
               </div>
             </div>
           </section>
@@ -154,7 +162,7 @@
                 @click="currentVersion = i"
               >版本 {{ i + 1 }}</button>
             </div>
-            <button class="btn btn-sm" @click="downloadPreview">⬇ 下载</button>
+            <button v-if="currentResult" class="btn btn-sm" @click="downloadPreview">⬇ 下载</button>
           </div>
         </div>
 
@@ -200,6 +208,7 @@
       <div class="bar-left">
         <button class="btn btn-sm" @click="resetAll">🔄 重置</button>
         <button class="btn btn-sm" @click="saveDraft">💾 保存草稿</button>
+        <button v-if="currentProjectId" class="btn btn-sm" @click="shareProject">📤 分享</button>
       </div>
       <button class="btn btn-gradient" :disabled="!canGenerate || isGenerating" @click="handleGenerate">
         <span v-if="isGenerating" class="spinner-sm"></span>
@@ -226,8 +235,11 @@ const generatedResults = ref([])
 const currentVersion = ref(0)
 const isGenerating = ref(false)
 const generatingStep = ref('')
+const generatingStepDetail = ref('')
+const progressPercent = ref(0)
 const isDragging = ref(false)
 const fileInput = ref(null)
+const currentProjectId = ref(null)
 
 // 计算属性
 const selectedModules = computed(() => modules.value.filter(m => m.selected).sort((a, b) => a.order - b.order))
@@ -239,6 +251,52 @@ const showTranslate = computed(() => {
 })
 const currentLang = computed(() => LANGUAGES.find(l => l.value === settings.value.language))
 const canGenerate = computed(() => images.value.length > 0 && copywriting.value.trim().length > 0)
+
+// 加载项目
+const loadProject = async (projectId) => {
+  try {
+    const res = await apiClient.getProject(projectId)
+    const proj = res.data
+    
+    // 加载设置
+    if (proj.settings) {
+      settings.value = {
+        platform: proj.settings.platform || 'shopee',
+        ratio: proj.settings.ratio || '3:4',
+        language: proj.settings.language || 'zh',
+        style: proj.settings.style || 'modern-minimal',
+        versionCount: proj.settings.version_count || 3,
+      }
+    }
+    
+    // 加载文案
+    if (proj.copywriting) copywriting.value = proj.copywriting
+    
+    // 加载模块
+    if (proj.modules) {
+      modules.value = DEFAULT_MODULES.map(defMod => {
+        const projMod = proj.modules.find(m => m.id === defMod.id)
+        return projMod ? { ...defMod, selected: projMod.selected, order: projMod.order } : defMod
+      })
+    }
+    
+    // 加载图片（如果有）
+    if (proj.images && proj.images.length > 0) {
+      images.value = proj.images.map(img => ({
+        id: img.id,
+        file: null, // 后端存储的是路径，无法直接获取 File 对象
+        previewUrl: img.url, // 使用存储的路径
+        fileName: img.id + '.jpg',
+      }))
+    }
+    
+    currentProjectId.value = projectId
+    showToast('项目已加载', 'success')
+  } catch (e) {
+    console.error('加载项目失败', e)
+    showToast('加载项目失败', 'error')
+  }
+}
 
 // 加载草稿
 onMounted(async () => {
@@ -264,6 +322,12 @@ onMounted(async () => {
         showToast(`已加载模板「${tpl.name}」预设`, 'info')
       }
     } catch (e) { console.error('加载模板失败', e) }
+  }
+  
+  // 加载项目
+  const projectId = route.query.project
+  if (projectId) {
+    await loadProject(projectId)
   }
 })
 
@@ -295,19 +359,91 @@ const toggleModule = (id) => {
   modules.value = modules.value.map(m => m.id === id ? { ...m, selected: !m.selected } : m)
 }
 
-// AI 文案生成
-const generateCopywriting = async () => {
-  if (!copywriting.value.trim()) { showToast('请先输入商品特点或卖点描述', 'error'); return }
+// 将文件转换为 base64
+const fileToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = error => reject(error)
+  })
+}
+
+// 分析图片并生成文案
+const analyzeAndGenerate = async () => {
+  if (images.value.length === 0 && !copywriting.value.trim()) {
+    showToast('请先上传商品图片或输入商品特点', 'error')
+    return
+  }
+  
+  isGenerating.value = true
+  generatingStep.value = 'AI 提示词撰写中'
+  generatingStepDetail.value = '正在分析商品图片并生成卖点文案...'
+  
   try {
+    let productFeatures = copywriting.value.trim()
+    let imageAnalysis = null
+    
+    // 如果有上传图片，先分析图片
+    if (images.value.length > 0) {
+      generatingStepDetail.value = `正在分析 ${images.value.length} 张商品图片...`
+      
+      // 读取图片文件并转换为 base64
+      const imageBases = []
+      for (const img of images.value) {
+        console.log('检查图片:', img.file?.name, img.file?.type, img.file?.size)
+        if (img.file) {
+          try {
+            const base64 = await fileToBase64(img.file)
+            console.log('转换成功，长度:', base64.length)
+            imageBases.push({ url: base64 })
+          } catch (e) {
+            console.error('图片读取失败', e)
+          }
+        } else {
+          console.warn('图片没有 file 属性', img)
+        }
+      }
+      console.log('发送的图片数量:', imageBases.length)
+      
+      if (imageBases.length > 0) {
+        generatingStepDetail.value = 'AI 正在识别商品特点和卖点...'
+        const analysisRes = await apiClient.analyzeImages({
+          images: imageBases,
+          target_language: '中文',
+        })
+        imageAnalysis = analysisRes.data
+        
+        // 使用分析结果填充商品特点
+        if (imageAnalysis.product_features) {
+          productFeatures = imageAnalysis.product_features
+        }
+        
+        // 显示分析结果摘要
+        showToast(`已识别 ${imageAnalysis.selling_points?.length || 0} 个卖点`, 'success')
+      }
+    }
+    
+    // 生成文案
+    generatingStepDetail.value = '正在生成卖点文案...'
     const res = await apiClient.generateCopywriting({
-      product_features: copywriting.value,
-      target_audience: '东南亚跨境电商消费者',
+      product_features: productFeatures,
+      target_audience: imageAnalysis?.target_audience || '东南亚跨境电商消费者',
       target_language: '中文',
+      image_analysis: imageAnalysis,
     })
     copywriting.value = res.data.copywriting
+    generatingStep.value = '完成！'
+    generatingStepDetail.value = '卖点文案已生成'
     showToast('卖点文案已生成', 'success')
   } catch (e) {
     showToast(e.response?.data?.detail || '生成失败，请重试', 'error')
+  } finally {
+    setTimeout(() => {
+      isGenerating.value = false
+      generatingStep.value = ''
+      generatingStepDetail.value = ''
+    }, 1500)
   }
 }
 
@@ -316,12 +452,30 @@ const translateCopy = async () => {
   if (!copywriting.value.trim()) { showToast('请先生成或输入卖点文案', 'error'); return }
   const lang = LANGUAGES.find(l => l.value === settings.value.language)
   if (lang?.label === '中文') { showToast('当前语言无需翻译', 'info'); return }
+  
+  isGenerating.value = true
+  generatingStep.value = '翻译中'
+  generatingStepDetail.value = `正在翻译为 ${lang.label}...`
+  progressPercent.value = 30
+  
   try {
+    progressPercent.value = 60
+    generatingStepDetail.value = 'AI 正在翻译文案...'
     const res = await apiClient.translate({ source_text: copywriting.value, target_language: lang.translateCode || lang.value })
     translatedCopy.value = { ...translatedCopy.value, [settings.value.language]: res.data.translated_text }
+    progressPercent.value = 100
+    generatingStep.value = '完成！'
+    generatingStepDetail.value = '翻译完成'
     showToast('翻译完成', 'success')
   } catch (e) {
-    showToast('翻译失败，请重试', 'error')
+    showToast(e.response?.data?.detail || '翻译失败，请重试', 'error')
+  } finally {
+    setTimeout(() => {
+      isGenerating.value = false
+      generatingStep.value = ''
+      generatingStepDetail.value = ''
+      progressPercent.value = 0
+    }, 1000)
   }
 }
 
@@ -331,26 +485,37 @@ const handleGenerate = async () => {
   if (!selectedModules.value.length) { showToast('请至少选择一个详情页模块', 'error'); return }
 
   isGenerating.value = true
+  progressPercent.value = 0
   const uploadedImages = []
 
-  // 上传图片
+  // 上传图片（新上传的图片需要上传，已有的图片直接使用）
   for (const img of images.value) {
     try {
-      const res = await apiClient.uploadImage(img.file)
-      uploadedImages.push({ id: res.data.id, url: res.data.url })
+      if (img.file) {
+        // 新上传的图片，需要上传到服务器
+        const res = await apiClient.uploadImage(img.file)
+        uploadedImages.push({ id: res.data.id, url: res.data.url })
+      } else if (img.previewUrl) {
+        // 已有的图片（从项目加载的），直接使用 URL
+        uploadedImages.push({ id: img.id, url: img.previewUrl })
+      }
     } catch (e) {
-      console.error('上传失败', e)
+      console.error('图片处理失败', e)
     }
   }
 
   if (!uploadedImages.length) {
-    showToast('图片上传失败', 'error')
+    showToast('没有有效的图片，请先上传图片', 'error')
     isGenerating.value = false
     return
   }
 
   try {
     // 创建项目
+    generatingStep.value = '正在创建项目...'
+    generatingStepDetail.value = '保存项目数据到服务器'
+    progressPercent.value = 10
+    
     const projectRes = await apiClient.generate({
       settings: settings.value,
       copywriting: copywriting.value,
@@ -358,59 +523,113 @@ const handleGenerate = async () => {
       images: uploadedImages,
     })
 
-    showToast('项目已创建，开始生成详情页...', 'success')
-
-    // 保存项目
     const project = projectRes.data
-    const projects = JSON.parse(localStorage.getItem('asean_projects') || '[]')
-    projects.unshift({
-      id: project.id,
-      name: project.name,
-      thumbnailUrl: '',
-      platform: project.platform,
-      language: project.language,
-      created_at: project.created_at,
-    })
-    localStorage.setItem('asean_projects', JSON.stringify(projects))
+    currentProjectId.value = project.id
+    progressPercent.value = 20
 
-    // 生成图片（模拟流式进度）
+    // 生成图片（一次性调用，后端处理所有模块）
     const totalModules = selectedModules.value.length
-    let completed = 0
-
-    for (const mod of selectedModules.value) {
-      generatingStep.value = `正在生成：${mod.name}`
-      try {
-        const imgRes = await apiClient.generateImages({
-          settings: settings.value,
-          copywriting: copywriting.value,
-          modules: modules.value.filter(m => m.selected),
-          images: uploadedImages,
-        })
-        completed++
-      } catch (e) {
-        console.error(`生成 ${mod.name} 失败`, e)
-        completed++
+    generatingStep.value = '正在生成详情页图片...'
+    generatingStepDetail.value = `共 ${totalModules} 个模块`
+    progressPercent.value = 30
+    
+    let allResults = []
+    try {
+      const imgRes = await apiClient.generateImages({
+        settings: settings.value,
+        copywriting: copywriting.value,
+        modules: modules.value.filter(m => m.selected),
+        images: uploadedImages,
+      })
+      
+      if (imgRes.data?.results) {
+        allResults = imgRes.data.results
       }
+    } catch (e) {
+      console.error('生成图片失败', e)
+      showToast('生成图片失败，请重试', 'error')
+    }
+
+    // 更新预览结果
+    if (allResults.length > 0) {
+      generatedResults.value = [{
+        moduleId: project.id,
+        moduleImages: allResults.reduce((acc, r) => {
+          if (r.status === 'success' && r.images?.length > 0) {
+            acc[r.module_id] = r.images[0] // 取第一张图片
+          } else {
+            acc[r.module_id] = '' // 空字符串表示未生成
+          }
+          return acc
+        }, {})
+      }]
+      currentVersion.value = 0
+      progressPercent.value = 100
+      generatingStep.value = '完成！'
+      generatingStepDetail.value = '详情页生成成功'
+      
+      // 检查是否有AI生成的图片
+      const hasAiImage = allResults.some(r => r.has_ai_image)
+      if (!hasAiImage) {
+        showToast('提示：使用商品图片作为详情页预览', 'info')
+      } else {
+        showToast('详情页生成成功！', 'success')
+      }
+    } else {
+      showToast('生成失败，请重试', 'error')
     }
 
     generatingStep.value = '完成！'
+    generatingStepDetail.value = '详情页生成成功'
+    progressPercent.value = 100
     showToast('详情页生成成功！', 'success')
   } catch (e) {
+    console.error('生成失败', e)
     showToast('生成失败，请重试', 'error')
   } finally {
-    isGenerating.value = false
-    generatingStep.value = ''
+    setTimeout(() => {
+      isGenerating.value = false
+      generatingStep.value = ''
+      generatingStepDetail.value = ''
+      progressPercent.value = 0
+    }, 1500)
   }
 }
 
 // 保存草稿
-const saveDraft = () => {
-  localStorage.setItem('asean_draft', JSON.stringify({
-    settings: settings.value,
-    copywriting: copywriting.value,
-    modules: modules.value,
-  }))
-  showToast('草稿已保存', 'success')
+const saveDraft = async () => {
+  try {
+    // 先保存到 localStorage
+    const draftData = {
+      settings: settings.value,
+      copywriting: copywriting.value,
+      modules: modules.value,
+      images: images.value.map(img => ({
+        id: img.id,
+        previewUrl: img.previewUrl,
+        fileName: img.fileName,
+      })),
+      saved_at: new Date().toISOString(),
+    }
+    localStorage.setItem('asean_draft', JSON.stringify(draftData))
+    
+    // 如果有项目ID，更新后端
+    if (currentProjectId.value) {
+      await apiClient.generate({
+        settings: settings.value,
+        copywriting: copywriting.value,
+        modules: modules.value,
+        images: [],
+        project_id: currentProjectId.value,
+      })
+      showToast('项目已更新', 'success')
+    } else {
+      showToast('草稿已保存', 'success')
+    }
+  } catch (e) {
+    console.error('保存失败', e)
+    showToast('保存失败，请重试', 'error')
+  }
 }
 
 // 重置
@@ -426,9 +645,104 @@ const resetAll = () => {
   showToast('已重置', 'info')
 }
 
+// 下载单张图片
+const downloadImage = async (imageUrl, filename) => {
+  try {
+    const res = await fetch(imageUrl)
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename || 'detail-image.jpg'
+    a.click()
+    window.URL.revokeObjectURL(url)
+    showToast('下载成功', 'success')
+  } catch (e) {
+    console.error('下载失败', e)
+    showToast('下载失败', 'error')
+  }
+}
+
+// 下载项目全部图片为ZIP
+const downloadProjectZip = async () => {
+  if (!currentProjectId.value) {
+    showToast('请先保存项目', 'error')
+    return
+  }
+  
+  try {
+    const res = await apiClient.downloadProject(currentProjectId.value)
+    const blob = new Blob([res.data], { type: 'application/zip' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${currentProjectId.value}_detail_images.zip`
+    a.click()
+    window.URL.revokeObjectURL(url)
+    showToast('下载成功', 'success')
+  } catch (e) {
+    console.error('下载失败', e)
+    showToast('下载失败', 'error')
+  }
+}
+
+// 分享项目
+const shareProject = async () => {
+  const shareData = {
+    title: 'ASEAN Listing AI - 详情页项目',
+    text: `我生成了一个${settings.value.platform}详情页，平台：${settings.value.platform}，语言：${settings.value.language}`,
+    url: window.location.href,
+  }
+  
+  // 尝试使用 Web Share API
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData)
+      showToast('分享成功', 'success')
+      return
+    } catch (e) {
+      // 用户取消分享，继续尝试复制链接
+    }
+  }
+  
+  // 复制链接到剪贴板
+  try {
+    await navigator.clipboard.writeText(window.location.href)
+    showToast('链接已复制', 'success')
+  } catch (e) {
+    showToast('分享失败，请手动复制链接', 'error')
+  }
+}
+
 // 下载预览
 const downloadPreview = async () => {
-  showToast('下载功能开发中...', 'info')
+  if (!currentResult.value?.moduleImages) {
+    showToast('请先生成详情页', 'error')
+    return
+  }
+  
+  // 下载所有模块图片
+  const images = Object.entries(currentResult.value.moduleImages)
+    .filter(([_, url]) => url && url.length > 0)
+  
+  if (images.length === 0) {
+    showToast('暂无可下载的图片', 'warning')
+    return
+  }
+  
+  if (images.length === 1) {
+    // 单张图片直接下载
+    const [moduleId, url] = images[0]
+    const mod = modules.value.find(m => m.id === moduleId)
+    downloadImage(url, `${mod?.name || 'image'}.jpg`)
+  } else {
+    // 多张图片提示使用ZIP下载
+    if (currentProjectId.value) {
+      downloadProjectZip()
+    } else {
+      showToast('请先保存项目后下载ZIP', 'info')
+    }
+  }
 }
 </script>
 
@@ -546,20 +860,58 @@ const downloadPreview = async () => {
 /* 模块列表 */
 .module-list { display: flex; flex-direction: column; gap: 6px; }
 .module-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s;
+  overflow: hidden;
 }
 .module-item:hover { border-color: hsl(252 65% 48% / 0.3); background: hsl(252 65% 48% / 0.03); }
 .module-item.selected { border-color: hsl(252 65% 48% / 0.4); background: hsl(252 65% 48% / 0.06); }
-.module-item input[type="checkbox"] { accent-color: var(--primary); }
+.module-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+}
+.module-item input[type="checkbox"] { accent-color: var(--primary); flex-shrink: 0; }
 .module-name { flex: 1; font-size: 14px; }
-.module-order { font-size: 12px; color: var(--muted-foreground); }
+.module-order {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.module-desc {
+  padding: 0 12px 10px 38px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin: 0;
+  line-height: 1.4;
+}
+.section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.btn-outline {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--foreground);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
 
 /* 文案 */
 .copy-actions { display: flex; gap: 8px; margin-top: 8px; }

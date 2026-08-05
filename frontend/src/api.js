@@ -84,37 +84,40 @@ export const apiClient = {
   health: () => api.get('/health'),
 
   // 模板
-  getTemplates: () => api.get('/api/templates'),
-  getTemplateCategories: () => api.get('/api/templates/categories'),
+  getTemplates: () => api.get('/templates'),
+  getTemplateCategories: () => api.get('/templates/categories'),
 
   // 模块
-  getModules: () => api.get('/api/modules'),
+  getModules: () => api.get('/modules'),
+
+  // 图片分析
+  analyzeImages: (data) => api.post('/analyze-images', data),
 
   // 文案生成
-  generateCopywriting: (data) => api.post('/api/copywriting', data),
+  generateCopywriting: (data) => api.post('/copywriting', data),
 
   // 翻译
-  translate: (data) => api.post('/api/translate', data),
+  translate: (data) => api.post('/translate', data),
 
   // 图片上传
   uploadImage: (file) => {
     const form = new FormData()
     form.append('file', file)
-    return api.post('/api/images/upload', form, {
+    return api.post('/images/upload', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
-  deleteImage: (imageId) => api.delete(`/api/images/${imageId}`),
+  deleteImage: (imageId) => api.delete(`/images/${imageId}`),
 
   // 生成详情页
-  generate: (data) => api.post('/api/generate', data),
-  generateImages: (data) => api.post('/api/generate-images', data),
+  generate: (data) => api.post('/generate', data),
+  generateImages: (data) => api.post('/generate-images', data),
 
   // 项目
-  listProjects: () => api.get('/api/projects'),
-  getProject: (id) => api.get(`/api/projects/${id}`),
-  deleteProject: (id) => api.delete(`/api/projects/${id}`),
-  getProjectCopywriting: (id) => api.get(`/api/projects/${id}/copywriting`),
+  listProjects: () => api.get('/projects'),
+  getProject: (id) => api.get(`/projects/${id}`),
+  deleteProject: (id) => api.delete(`/projects/${id}`),
+  getProjectCopywriting: (id) => api.get(`/projects/${id}/copywriting`),
 }
 
 // ============ 工具函数 ============

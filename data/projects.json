@@ -1,1 +1,390 @@
-[]
+[
+  {
+    "id": "988814da1f06",
+    "name": "详情页项目 2026-08-04",
+    "platform": "shopee",
+    "language": "zh",
+    "style": "modern-minimal",
+    "ratio": "3:4",
+    "copywriting": "**主标题：**  \n✨银灰贵族，温柔伴侣✨  \n优雅短毛猫，治愈你的都市孤独  \n\n**核心卖点：**  \n- 高颜值银灰条纹，自带高级感家居美学  \n- 浓密柔软短毛，低维护不掉毛困扰  \n- 安静温顺性格，新手也能轻松驯养  \n- 贴心互动伴侣，独居生活不再孤单  \n- 小户型友好，轻盈体态不占空间  \n\n**场景化描述：**  \n结束一天疲惫工作，推开门就看到它优雅地蜷在窗边。银灰色的毛发在夕阳下泛起柔光，轻蹭你手心的温暖触感瞬间治愈所有压力。它不会吵闹，却总在你需要时默默陪伴——一杯咖啡、一本书、一只猫，就是都市人最奢侈的小确幸。  \n\n**行动号召：**  \n点击领养，让这份温柔住进你的生活！",
+    "images": [
+      {
+        "id": "a1a79f6b6c17",
+        "url": "/static/uploads/a1a79f6b6c17.jpg"
+      }
+    ],
+    "modules": [
+      {
+        "id": "hero",
+        "name": "首屏主视觉",
+        "selected": true,
+        "order": 0
+      },
+      {
+        "id": "selling-points",
+        "name": "核心卖点图",
+        "selected": true,
+        "order": 1
+      },
+      {
+        "id": "usage-scene",
+        "name": "使用场景图",
+        "selected": true,
+        "order": 2
+      },
+      {
+        "id": "multi-angle",
+        "name": "多角度展示",
+        "selected": true,
+        "order": 3
+      },
+      {
+        "id": "atmosphere",
+        "name": "场景氛围图",
+        "selected": true,
+        "order": 4
+      },
+      {
+        "id": "feature-detail",
+        "name": "功能细节图",
+        "selected": true,
+        "order": 5
+      },
+      {
+        "id": "brand-story",
+        "name": "品牌故事",
+        "selected": false,
+        "order": 6
+      },
+      {
+        "id": "specs",
+        "name": "规格参数",
+        "selected": false,
+        "order": 7
+      },
+      {
+        "id": "series",
+        "name": "系列展示",
+        "selected": false,
+        "order": 8
+      },
+      {
+        "id": "reviews",
+        "name": "买家好评",
+        "selected": false,
+        "order": 9
+      },
+      {
+        "id": "logistics",
+        "name": "物流支付",
+        "selected": false,
+        "order": 10
+      },
+      {
+        "id": "promotion",
+        "name": "促销信息",
+        "selected": false,
+        "order": 11
+      }
+    ],
+    "settings": {
+      "platform": "shopee",
+      "ratio": "3:4",
+      "language": "zh",
+      "style": "modern-minimal",
+      "version_count": 3
+    },
+    "created_at": "2026-08-04T11:48:10.907396"
+  },
+  {
+    "id": "0266f33b9909",
+    "name": "详情页项目 2026-08-04",
+    "platform": "shopee",
+    "language": "zh",
+    "style": "modern-minimal",
+    "ratio": "3:4",
+    "copywriting": "**主标题：**  \n✨银灰贵族，温柔伴侣✨  \n优雅短毛猫，治愈你的都市孤独  \n\n**核心卖点：**  \n- 高颜值银灰条纹，自带高级感家居美学  \n- 浓密柔软短毛，低维护不掉毛困扰  \n- 安静温顺性格，新手也能轻松驯养  \n- 贴心互动伴侣，独居生活不再孤单  \n- 小户型友好，轻盈体态不占空间  \n\n**场景化描述：**  \n结束一天疲惫工作，推开门就看到它优雅地蜷在窗边。银灰色的毛发在夕阳下泛起柔光，轻蹭你手心的温暖触感瞬间治愈所有压力。它不会吵闹，却总在你需要时默默陪伴——一杯咖啡、一本书、一只猫，就是都市人最奢侈的小确幸。  \n\n**行动号召：**  \n点击领养，让这份温柔住进你的生活！",
+    "images": [
+      {
+        "id": "a1a79f6b6c17",
+        "url": "/static/uploads/a1a79f6b6c17.jpg"
+      }
+    ],
+    "modules": [
+      {
+        "id": "hero",
+        "name": "首屏主视觉",
+        "selected": true,
+        "order": 0
+      },
+      {
+        "id": "selling-points",
+        "name": "核心卖点图",
+        "selected": true,
+        "order": 1
+      },
+      {
+        "id": "usage-scene",
+        "name": "使用场景图",
+        "selected": true,
+        "order": 2
+      },
+      {
+        "id": "multi-angle",
+        "name": "多角度展示",
+        "selected": true,
+        "order": 3
+      },
+      {
+        "id": "atmosphere",
+        "name": "场景氛围图",
+        "selected": true,
+        "order": 4
+      },
+      {
+        "id": "feature-detail",
+        "name": "功能细节图",
+        "selected": true,
+        "order": 5
+      },
+      {
+        "id": "brand-story",
+        "name": "品牌故事",
+        "selected": false,
+        "order": 6
+      },
+      {
+        "id": "specs",
+        "name": "规格参数",
+        "selected": false,
+        "order": 7
+      },
+      {
+        "id": "series",
+        "name": "系列展示",
+        "selected": false,
+        "order": 8
+      },
+      {
+        "id": "reviews",
+        "name": "买家好评",
+        "selected": false,
+        "order": 9
+      },
+      {
+        "id": "logistics",
+        "name": "物流支付",
+        "selected": false,
+        "order": 10
+      },
+      {
+        "id": "promotion",
+        "name": "促销信息",
+        "selected": false,
+        "order": 11
+      }
+    ],
+    "settings": {
+      "platform": "shopee",
+      "ratio": "3:4",
+      "language": "zh",
+      "style": "modern-minimal",
+      "version_count": 3
+    },
+    "created_at": "2026-08-04T15:32:45.217236"
+  },
+  {
+    "id": "e90042399ef1",
+    "name": "详情页项目 2026-08-05",
+    "platform": "shopee",
+    "language": "zh",
+    "style": "modern-minimal",
+    "ratio": "3:4",
+    "copywriting": "**主标题：**  \n✨银灰贵族，温柔伴侣✨  \n优雅短毛猫，治愈你的都市孤独  \n\n**核心卖点：**  \n- 高颜值银灰条纹，自带高级感家居美学  \n- 浓密柔软短毛，低维护不掉毛困扰  \n- 安静温顺性格，新手也能轻松驯养  \n- 贴心互动伴侣，独居生活不再孤单  \n- 小户型友好，轻盈体态不占空间  \n\n**场景化描述：**  \n结束一天疲惫工作，推开门就看到它优雅地蜷在窗边。银灰色的毛发在夕阳下泛起柔光，轻蹭你手心的温暖触感瞬间治愈所有压力。它不会吵闹，却总在你需要时默默陪伴——一杯咖啡、一本书、一只猫，就是都市人最奢侈的小确幸。  \n\n**行动号召：**  \n点击领养，让这份温柔住进你的生活！",
+    "images": [
+      {
+        "id": "a1a79f6b6c17",
+        "url": "/static/uploads/a1a79f6b6c17.jpg"
+      }
+    ],
+    "modules": [
+      {
+        "id": "hero",
+        "name": "首屏主视觉",
+        "selected": false,
+        "order": 0
+      },
+      {
+        "id": "selling-points",
+        "name": "核心卖点图",
+        "selected": false,
+        "order": 1
+      },
+      {
+        "id": "usage-scene",
+        "name": "使用场景图",
+        "selected": false,
+        "order": 2
+      },
+      {
+        "id": "multi-angle",
+        "name": "多角度展示",
+        "selected": false,
+        "order": 3
+      },
+      {
+        "id": "atmosphere",
+        "name": "场景氛围图",
+        "selected": false,
+        "order": 4
+      },
+      {
+        "id": "feature-detail",
+        "name": "功能细节图",
+        "selected": true,
+        "order": 5
+      },
+      {
+        "id": "brand-story",
+        "name": "品牌故事",
+        "selected": false,
+        "order": 6
+      },
+      {
+        "id": "specs",
+        "name": "规格参数",
+        "selected": false,
+        "order": 7
+      },
+      {
+        "id": "series",
+        "name": "系列展示",
+        "selected": false,
+        "order": 8
+      },
+      {
+        "id": "reviews",
+        "name": "买家好评",
+        "selected": false,
+        "order": 9
+      },
+      {
+        "id": "logistics",
+        "name": "物流支付",
+        "selected": false,
+        "order": 10
+      },
+      {
+        "id": "promotion",
+        "name": "促销信息",
+        "selected": false,
+        "order": 11
+      }
+    ],
+    "settings": {
+      "platform": "shopee",
+      "ratio": "3:4",
+      "language": "zh",
+      "style": "modern-minimal",
+      "version_count": 3
+    },
+    "created_at": "2026-08-04T16:01:02.819291"
+  },
+  {
+    "id": "6204b1cf36c7",
+    "name": "详情页项目 2026-08-05",
+    "platform": "shopee",
+    "language": "zh",
+    "style": "modern-minimal",
+    "ratio": "3:4",
+    "copywriting": "**主标题：**  \n✨银灰贵族，温柔伴侣✨  \n优雅短毛猫，治愈你的都市孤独  \n\n**核心卖点：**  \n- 高颜值银灰条纹，自带高级感家居美学  \n- 浓密柔软短毛，低维护不掉毛困扰  \n- 安静温顺性格，新手也能轻松驯养  \n- 贴心互动伴侣，独居生活不再孤单  \n- 小户型友好，轻盈体态不占空间  \n\n**场景化描述：**  \n结束一天疲惫工作，推开门就看到它优雅地蜷在窗边。银灰色的毛发在夕阳下泛起柔光，轻蹭你手心的温暖触感瞬间治愈所有压力。它不会吵闹，却总在你需要时默默陪伴——一杯咖啡、一本书、一只猫，就是都市人最奢侈的小确幸。  \n\n**行动号召：**  \n点击领养，让这份温柔住进你的生活！",
+    "images": [
+      {
+        "id": "a1a79f6b6c17",
+        "url": "/static/uploads/a1a79f6b6c17.jpg"
+      }
+    ],
+    "modules": [
+      {
+        "id": "hero",
+        "name": "首屏主视觉",
+        "selected": true,
+        "order": 0
+      },
+      {
+        "id": "selling-points",
+        "name": "核心卖点图",
+        "selected": true,
+        "order": 1
+      },
+      {
+        "id": "usage-scene",
+        "name": "使用场景图",
+        "selected": true,
+        "order": 2
+      },
+      {
+        "id": "multi-angle",
+        "name": "多角度展示",
+        "selected": false,
+        "order": 3
+      },
+      {
+        "id": "atmosphere",
+        "name": "场景氛围图",
+        "selected": false,
+        "order": 4
+      },
+      {
+        "id": "feature-detail",
+        "name": "功能细节图",
+        "selected": false,
+        "order": 5
+      },
+      {
+        "id": "brand-story",
+        "name": "品牌故事",
+        "selected": false,
+        "order": 6
+      },
+      {
+        "id": "specs",
+        "name": "规格参数",
+        "selected": false,
+        "order": 7
+      },
+      {
+        "id": "series",
+        "name": "系列展示",
+        "selected": false,
+        "order": 8
+      },
+      {
+        "id": "reviews",
+        "name": "买家好评",
+        "selected": false,
+        "order": 9
+      },
+      {
+        "id": "logistics",
+        "name": "物流支付",
+        "selected": false,
+        "order": 10
+      },
+      {
+        "id": "promotion",
+        "name": "促销信息",
+        "selected": false,
+        "order": 11
+      }
+    ],
+    "settings": {
+      "platform": "shopee",
+      "ratio": "3:4",
+      "language": "zh",
+      "style": "modern-minimal",
+      "version_count": 3
+    },
+    "created_at": "2026-08-04T16:01:47.638004"
+  }
+]
