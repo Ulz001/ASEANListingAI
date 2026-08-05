@@ -187,7 +187,7 @@
               :key="mod.id"
               class="preview-module"
             >
-              <div v-if="currentResult?.moduleImages[mod.id]" class="module-image">
+              <div v-if="currentResult?.moduleImages?.[mod.id]" class="module-image">
                 <img :src="currentResult.moduleImages[mod.id]" :alt="mod.name">
               </div>
               <div v-else class="module-placeholder">
@@ -195,6 +195,10 @@
                   <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>
                 </svg>
                 <span>{{ mod.name }}</span>
+              </div>
+              <div v-if="currentResult?.moduleDesignDesc?.[mod.id]" class="module-design-desc">
+                <p class="design-label">AI 设计描述</p>
+                <p class="design-text">{{ currentResult.moduleDesignDesc[mod.id] }}</p>
               </div>
               <div class="module-label">{{ mod.name }}</div>
             </div>
@@ -552,13 +556,23 @@ const handleGenerate = async () => {
 
     // 更新预览结果
     if (allResults.length > 0) {
+      const hasAiImage = allResults.some(r => r.has_ai_image)
+      const hasDesignDesc = allResults.some(r => r.design_description)
+      const hasError = allResults.some(r => r.status === 'error')
+
       generatedResults.value = [{
         moduleId: project.id,
         moduleImages: allResults.reduce((acc, r) => {
-          if (r.status === 'success' && r.images?.length > 0) {
-            acc[r.module_id] = r.images[0] // 取第一张图片
+          if (r.images?.length > 0) {
+            acc[r.module_id] = r.images[0]
           } else {
-            acc[r.module_id] = '' // 空字符串表示未生成
+            acc[r.module_id] = ''
+          }
+          return acc
+        }, {}),
+        moduleDesignDesc: allResults.reduce((acc, r) => {
+          if (r.design_description) {
+            acc[r.module_id] = r.design_description.replace(/```json\n?/g, '').replace(/```/g, '').trim()
           }
           return acc
         }, {})
@@ -567,13 +581,15 @@ const handleGenerate = async () => {
       progressPercent.value = 100
       generatingStep.value = '完成！'
       generatingStepDetail.value = '详情页生成成功'
-      
-      // 检查是否有AI生成的图片
-      const hasAiImage = allResults.some(r => r.has_ai_image)
-      if (!hasAiImage) {
-        showToast('提示：使用商品图片作为详情页预览', 'info')
-      } else {
+
+      if (hasError && !hasAiImage) {
+        showToast('生成失败，请重试', 'error')
+      } else if (hasAiImage) {
         showToast('详情页生成成功！', 'success')
+      } else if (hasDesignDesc) {
+        showToast('设计描述已生成（图像生成服务暂时不可用）', 'info')
+      } else {
+        showToast('生成失败，请重试', 'error')
       }
     } else {
       showToast('生成失败，请重试', 'error')
@@ -1027,6 +1043,13 @@ const downloadPreview = async () => {
 }
 .module-placeholder svg { width: 32px; height: 32px; opacity: 0.3; }
 .module-placeholder span { font-size: 13px; }
+.module-design-desc {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  background: hsl(240 15% 94% / 0.3);
+}
+.design-label { font-size: 11px; color: var(--muted-foreground); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.design-text { font-size: 12px; color: var(--foreground); line-height: 1.5; white-space: pre-line; }
 .module-label { padding: 10px 12px; border-top: 1px solid var(--border); font-size: 13px; font-weight: 500; }
 
 /* 底部栏 */

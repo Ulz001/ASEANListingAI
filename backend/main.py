@@ -190,6 +190,7 @@ class HealthResponse(BaseModel):
     version: str
     siliconflow_configured: bool
     agnes_configured: bool
+    image_generation_available: bool
     model: str
     timestamp: str
 
@@ -359,6 +360,70 @@ def build_image_prompt(product_info: str, selling_points: str, design_style: str
 }}
 仅输出JSON，无需额外解释。"""
 
+
+def build_image_gen_prompt(design_desc: str, module_type: str, image_ratio: str) -> str:
+    """构建用于图像生成的英文提示词"""
+    ratio_map = {
+        "1:1": "square",
+        "3:4": "portrait",
+        "4:3": "landscape",
+        "9:16": "9:16 vertical",
+        "16:9": "16:9 horizontal",
+    }
+    ratio_desc = ratio_map.get(image_ratio, "portrait")
+    return f"""Professional e-commerce product detail page image for {module_type} module.
+
+Design description: {design_desc}
+Style: {ratio_desc}, high quality, commercial photography, clean background,
+product-focused composition, studio lighting, no text overlays, no watermarks."""
+
+
+async def call_siliconflow_image_api(prompt: str, size: str = "1024x1024", n: int = 1) -> List[str]:
+    """调用 SiliconFlow 图像生成 API (DALL-E / FLUX)"""
+    if not SILICONFLOW_API_KEY:
+        logger.warning("SiliconFlow API 密钥未配置，跳过图像生成")
+        return []
+
+    payload = {
+        "model": "black-forest-labs/FLUX.1-schnell",
+        "prompt": prompt,
+        "size": size,
+        "n": n,
+    }
+
+    headers = {
+        "Authorization": f"Bearer {SILICONFLOW_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                f"{SILICONFLOW_API_URL}/images/generations",
+                json=payload,
+                headers=headers,
+                follow_redirects=True,
+            )
+            response.raise_for_status()
+            data = response.json()
+            image_urls = []
+            if "data" in data:
+                for item in data["data"]:
+                    if "url" in item and item["url"]:
+                        image_urls.append(item["url"])
+                    elif "b64_json" in item and item["b64_json"]:
+                        image_urls.append(f"data:image/png;base64,{item['b64_json']}")
+            return image_urls
+    except httpx.TimeoutException:
+        logger.warning("SiliconFlow 图像生成超时")
+        return []
+    except httpx.HTTPStatusError as e:
+        logger.warning(f"SiliconFlow 图像生成失败: {e.response.status_code} - {e.response.text[:200]}")
+        return []
+    except Exception as e:
+        logger.warning(f"SiliconFlow 图像生成异常: {e}")
+        return []
+
 # ============ SiliconFlow API 调用 ============
 async def call_siliconflow_api(prompt: str, system_prompt: str = None, response_format: dict = None) -> Dict[str, Any]:
     """调用 SiliconFlow API (OpenAI 兼容格式)"""
@@ -468,6 +533,7 @@ async def health_check():
         version="1.1.0",
         siliconflow_configured=bool(SILICONFLOW_API_KEY),
         agnes_configured=bool(AGNES_API_KEY),
+        image_generation_available=bool(SILICONFLOW_API_KEY),
         model=SILICONFLOW_MODEL,
         timestamp=datetime.utcnow().isoformat(),
     )
@@ -686,8 +752,18 @@ async def delete_image(image_id: str):
 
 @app.post("/api/generate-images")
 async def generate_detail_images(req: GenerateRequest):
-    """AI 生成详情页各模块图片（SiliconFlow 生成设计描述 + Agnes 生成图片）"""
+    """AI 生成详情页各模块图片（SiliconFlow 生成设计描述 + FLUX 生成图片）"""
     results = []
+
+    # 根据比例确定图片尺寸
+    size_map = {
+        "1:1": "1024x1024",
+        "3:4": "768x1024",
+        "4:3": "1024x768",
+        "9:16": "768x1344",
+        "16:9": "1344x768",
+    }
+    img_size = size_map.get(req.settings.ratio, "768x1024")
 
     for module in req.modules:
         if not module.selected:
@@ -703,40 +779,37 @@ async def generate_detail_images(req: GenerateRequest):
         )
 
         try:
-            # 1. 用 SiliconFlow 生成设计描述
+            # 1. 用 SiliconFlow 文本模型生成设计描述
             design_result = await call_siliconflow_api(prompt)
             design_desc = ""
             if "choices" in design_result and len(design_result["choices"]) > 0:
                 design_desc = design_result["choices"][0]["message"]["content"].strip()
 
-            # 2. 如果有 Agnes API，尝试生成图片
+            # 2. 用设计描述调用图像生成 API（FLUX）
             image_urls = []
-            if AGNES_API_KEY:
-                try:
-                    # 用设计描述生成图片（简化处理，实际需要根据 Agnes 的图像生成 API 调整）
-                    agnes_prompt = f"电商详情页图片，{module.name}模块，{design_desc[:500]}"
-                    agnes_result = await call_agnes_api(agnes_prompt)
-                    if "choices" in agnes_result and len(agnes_result["choices"]) > 0:
-                        choice = agnes_result["choices"][0]
-                        if "image_url" in choice:
-                            image_urls.append(choice["image_url"])
-                        elif "text" in choice:
-                            image_urls.append(choice["text"])
-                except Exception as e:
-                    logger.warning(f"Agnes 图片生成失败: {e}")
-            
-            # 如果没有生成图片，使用上传的商品图片作为占位符
-            if not image_urls and req.images:
-                image_urls = [req.images[0]["url"]]  # 使用第一张商品图片
+            if design_desc:
+                # 解析设计描述中的关键信息用于图像生成
+                gen_prompt = build_image_gen_prompt(design_desc, module.name, req.settings.ratio)
+                image_urls = await call_siliconflow_image_api(gen_prompt, size=img_size)
+
+            # 记录生成状态
+            status = "success"
+            error_msg = ""
+            if not image_urls and not design_desc:
+                status = "error"
+                error_msg = "设计描述和图像生成均失败"
+            elif not image_urls:
+                error_msg = "图像生成失败，已返回设计描述"
 
             results.append({
                 "module_id": module.id,
                 "module_name": module.name,
                 "design_description": design_desc[:500],
                 "images": image_urls,
-                "status": "success",
+                "status": status,
+                "error": error_msg,
                 "model": SILICONFLOW_MODEL,
-                "has_ai_image": len(image_urls) > 0 and bool(AGNES_API_KEY),
+                "has_ai_image": len(image_urls) > 0,
             })
         except Exception as e:
             logger.error(f"生成模块 {module.name} 失败: {e}")
